@@ -1,25 +1,34 @@
-from col import *
-from prerpoc import *
+import sys
+import os
+
+# Add the root directory to sys.path
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, root_dir)
+
+from src.colOT.col import *
+from src.prerpoc import *
 from matplotlib import pyplot as plt
 
-n_files = 40000
+store_path="../models/col_mnist.pt"
+device = "cpu"
+
+checkpoint = torch.load(store_path, map_location=torch.device(device))
+params = checkpoint["model_params"]
 
 model = Unet(
-    dim=64,                  # Base dimension for the model
-    channels=3,             # Number of input channels (RGB)
-    dim_mults=(1, 2, 4, 8), # Downsampling multipliers
-    flash_attn = True,
-    learned_variance=False, # Output single channel per pixel
+    dim=params["dim"],
+    channels=params["channels"],
+    dim_mults=params["dim_mults"],
+    flash_attn=params["flash_attn"],
+    learned_variance=params["learned_variance"],
 )
 
-print("Unet instantiated")
-num_timesteps = 10
-image_size = [184,224]
-device = "cuda"
-col = MyCOL(model, device=device, num_timesteps=num_timesteps)
-store_path="col5_model_Np"+str(n_files)+".pt"
-state_dict = torch.load(store_path,map_location=torch.device(device))
-col.load_state_dict(state_dict)
+image_size = params["image_size"]
+num_channel = params["channels"]
+col = MyCOL(model, device=device, num_timesteps=params["timesteps"])
+
+col.load_state_dict(checkpoint["model_state"])
+
 col.eval()
 
 #################
@@ -29,7 +38,7 @@ fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(5, 4))  # Adjust figsi
 k=0
 for i in range(nrows):
     for j in range(ncols):
-        x = torch.randn((1, 3, image_size[0], image_size[1])).to(device)
+        x = torch.randn((1, num_channel, image_size[0], image_size[1])).to(device)
         x = col.sample(x)
 
         x = x.detach().cpu().numpy()[0, ...].T
@@ -38,5 +47,6 @@ for i in range(nrows):
         ax[i, j].axis('off')  # Turn off ticks and labels
         k += 1
 
-plt.subplots_adjust(wspace=0, hspace=0)
-fig.savefig("col5_celeba_nfiles_"+str(n_files)+".pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+plt.subplots_adjust(wspace=0, hspace=0.2)
+fig.savefig("col_mnist.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+plt.show()
