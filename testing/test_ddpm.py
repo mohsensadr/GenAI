@@ -9,30 +9,27 @@ from src.ddpm.ddpm import *
 from src.prerpoc import *
 from matplotlib import pyplot as plt
 
-device = "cpu"
-image_size = (32, 32)
-num_channel = 1
-timesteps = 10
 store_path="../models/ddpm_mnist.pt"
+device = "cpu"
+
+checkpoint = torch.load(store_path, map_location=torch.device(device))
+params = checkpoint["model_params"]
 
 model = Unet(
-    dim=16,                  # Base dimension for the model
-    channels=num_channel,    # Number of input channels (RGB)
-    dim_mults=(1, 2, 4),     # Downsampling multipliers
-    flash_attn = True,
-    learned_variance=False, # Output single channel per pixel
+    dim=params["dim"],
+    channels=params["channels"],
+    dim_mults=params["dim_mults"],
+    flash_attn=params["flash_attn"],
+    learned_variance=params["learned_variance"],
 )
-print("Unet instantiated")
 
 diffusion = GaussianDiffusion(
-    model.to(device),
-    image_size = image_size, # Image dimensions
-    timesteps = timesteps    # number of steps
+    model.to(params["device"]),
+    image_size=params["image_size"],
+    timesteps=params["timesteps"]
 )
-print("diffusion instantiated")
 
-state_dict = torch.load(store_path,map_location=torch.device(device))
-diffusion.load_state_dict(state_dict)
+diffusion.load_state_dict(checkpoint["model_state"])
 
 diffusion.eval()
 

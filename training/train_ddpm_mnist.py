@@ -11,7 +11,8 @@ from matplotlib import pyplot as plt
 from torchvision import datasets, transforms
 from torch.utils.data import Subset
 
-def training_loop(model, loader, n_epochs, optim, device, store_path="../model/ddpm_model.pt", sort_every=5, reset=False):
+
+def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path="../model/ddpm_model.pt", sort_every=5, reset=False):
     mse = nn.MSELoss()
 
     if reset is True:
@@ -48,7 +49,7 @@ def training_loop(model, loader, n_epochs, optim, device, store_path="../model/d
         # Storing the model
         if best_loss > epoch_loss:
             best_loss = epoch_loss
-            torch.save(model.state_dict(), store_path)
+            torch.save(checkpoint, store_path)
             log_string += " --> Best model ever (stored)"
 
         print(log_string)
@@ -61,10 +62,15 @@ n_epochs = 10
 train_batch_size = 10
 num_workers = 0
 timesteps = 10
-
+max_samples = 10000
 name_dataset = "mnist"
 image_size = (32, 32)
 num_channel = 1 # Number of input channels (RGB)
+
+dim = 16
+dim_mults=(1, 2, 4)
+flash_attn = True
+learned_variance = False
 
 class MNISTImagesOnly(torch.utils.data.Dataset):
     def __init__(self, dataset):
@@ -87,18 +93,17 @@ transform = transforms.Compose([
 ds = datasets.MNIST(root='./'+name_dataset, train=True, download=True, transform=transform)
 print("data read")
 
-max_samples = 1000
 ds_limited = Subset(ds, range(max_samples))
 ds_images_only = MNISTImagesOnly(ds_limited)
 dl = DataLoader(ds_images_only, batch_size=train_batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
 print("data loader is constructed")
 
 model = Unet(
-    dim=16,                  # Base dimension for the model
+    dim=dim,                  # Base dimension for the model
     channels=num_channel,    # Number of input channels (RGB)
-    dim_mults=(1, 2, 4),     # Downsampling multipliers
-    flash_attn = True,
-    learned_variance=False, # Output single channel per pixel
+    dim_mults=dim_mults,     # Downsampling multipliers
+    flash_attn = flash_attn,
+    learned_variance=learned_variance, # Output single channel per pixel
 )
 print("Unet instantiated")
 
@@ -107,6 +112,21 @@ diffusion = GaussianDiffusion(
     image_size = image_size, # Image dimensions
     timesteps = timesteps    # number of steps
 )
+
+checkpoint = {
+    "model_state": diffusion.state_dict(),
+    "model_params": {
+        "dim": dim,
+        "channels": num_channel,
+        "dim_mults": dim_mults,
+        "flash_attn": flash_attn,
+        "learned_variance": learned_variance,
+        "image_size": image_size,
+        "timesteps": timesteps,
+        "device": device
+    }
+}
+
 diffusion.to(device)
 print("diffusion instantiated")
 
@@ -114,12 +134,11 @@ optimizer = optim.Adam(diffusion.parameters(), lr=lr)
 print("optimizer set")
 
 torch.cuda.empty_cache()
-training_loop(diffusion, dl, n_epochs, optimizer, device=device, store_path="../models/ddpm_"+name_dataset+".pt", reset=reset)
+training_loop(checkpoint, diffusion, dl, n_epochs, optimizer, device=device, store_path="../models/ddpm_"+name_dataset+".pt", reset=reset)
 
 diffusion.eval()
 
 ######
-
 nrows, ncols = 5, 5
 fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(5, 5))  # Adjust figsize as needed
 
@@ -136,5 +155,4 @@ for i in range(nrows):
 # Remove extra space between subplots
 plt.subplots_adjust(wspace=0, hspace=0)
 fig.savefig("ddpm_"+name_dataset+".pdf", dpi=300, bbox_inches='tight', pad_inches=0)
-
-
+plt.show()
