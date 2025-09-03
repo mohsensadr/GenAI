@@ -1,4 +1,4 @@
-from libs import *
+from src.libs import *
 
 from accelerate import Accelerator
 from torch.utils.data import DataLoader
