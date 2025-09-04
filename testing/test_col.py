@@ -9,7 +9,9 @@ from src.colOT.col import *
 from src.prerpoc import *
 from matplotlib import pyplot as plt
 
-store_path="../models/col_mnist.pt"
+#name_dataset = "mnist"
+name_dataset = "cifar10"
+store_path="../models/col_"+name_dataset+".pt"
 device = "cpu"
 
 checkpoint = torch.load(store_path, map_location=torch.device(device))
@@ -48,5 +50,5 @@ for i in range(nrows):
         k += 1
 
 plt.subplots_adjust(wspace=0, hspace=0.2)
-fig.savefig("col_mnist.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+fig.savefig("col_"+name_dataset+".pdf", dpi=300, bbox_inches='tight', pad_inches=0)
 plt.show()
