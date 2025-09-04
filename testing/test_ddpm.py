@@ -9,7 +9,9 @@ from src.ddpm.ddpm import *
 from src.prerpoc import *
 from matplotlib import pyplot as plt
 
-store_path="../models/ddpm_mnist.pt"
+name_dataset = "mnist"
+#name_dataset = "cifar10"
+store_path="../models/ddpm_"+name_dataset+".pt"
 device = "cpu"
 
 checkpoint = torch.load(store_path, map_location=torch.device(device))
@@ -46,6 +48,6 @@ for i in range(nrows):
         ax[i, j].axis('off')  # Turn off ticks and labels
         k += 1
 
-plt.savefig("ddpm_mnist.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+plt.savefig("ddpm_"+name_dataset+".pdf", dpi=300, bbox_inches='tight', pad_inches=0)
 
 plt.show()
