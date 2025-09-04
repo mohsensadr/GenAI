@@ -18,7 +18,7 @@ def make_ot_dataset(base_dataset, ot_fn, device="cpu", max_samples=None,
         imgs = imgs[:max_samples]
 
     N, C, H, W = imgs.shape
-    imgs = imgs.to(device)
+    #imgs = imgs.to(device)
 
     # Flatten to [N, d]
     Xdata_d = imgs.view(N, -1)
@@ -100,21 +100,21 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path
 
 print("Start!", flush=True)
 
-#device = "cuda"
-device = "cpu"
+device = "cuda"
+#device = "cpu"
 reset = False
 lr = 8e-5
-n_epochs = 10
-train_batch_size = 10
+n_epochs = 100
+train_batch_size = 100
 num_workers = 0
 timesteps = 10
-max_samples = 1000
+max_samples = 10000
 name_dataset = "CIFAR10"
 image_size = (32, 32)
 num_channel = 3 # Number of input channels (RGB)
 
-dim = 16
-dim_mults=(1, 2, 4)
+dim = 32
+dim_mults=(1, 2, 4, 8)
 flash_attn = True
 learned_variance = False
 
