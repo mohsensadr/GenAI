@@ -9,8 +9,8 @@ from src.ddpm.ddpm import *
 from src.prerpoc import *
 from matplotlib import pyplot as plt
 
-name_dataset = "mnist"
-#name_dataset = "cifar10"
+#name_dataset = "mnist"
+name_dataset = "CIFAR10"
 store_path="../models/ddpm_"+name_dataset+".pt"
 device = "cpu"
 
@@ -32,6 +32,8 @@ diffusion = GaussianDiffusion(
 )
 
 diffusion.load_state_dict(checkpoint["model_state"])
+
+diffusion.to(device)
 
 diffusion.eval()
 
