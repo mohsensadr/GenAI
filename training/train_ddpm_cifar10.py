@@ -60,16 +60,16 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path
 device = "cuda" #"cpu"
 reset = False
 lr = 8e-5
-n_epochs = 100
-train_batch_size = 100
-num_workers = 0
+n_epochs = 10
+train_batch_size = 10
+num_workers = 2
 timesteps = 10
 max_samples = 10000
 name_dataset = "CIFAR10"
 image_size = (32, 32)
 num_channel = 3 # Number of input channels (RGB)
 
-dim = 32
+dim = 64
 dim_mults=(1, 2, 4, 8)
 flash_attn = True
 learned_variance = False
