@@ -10,7 +10,8 @@ from src.prerpoc import *
 from matplotlib import pyplot as plt
 
 #name_dataset = "mnist"
-name_dataset = "CIFAR10"
+#name_dataset = "CIFAR10"
+name_dataset = "Food101"
 store_path="../models/ddpm_"+name_dataset+".pt"
 device = "cpu"
 
