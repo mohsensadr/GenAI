@@ -41,7 +41,7 @@ k=0
 for i in range(nrows):
     for j in range(ncols):
         x = torch.randn((1, num_channel, image_size[0], image_size[1])).to(device)
-        x = col.sample(x)
+        x = torch.clamp((col.sample(x) + 1) / 2, 0, 1)
 
         x = x.detach().cpu().numpy()[0, ...].T
         x = np.swapaxes(x,0,1)

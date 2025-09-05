@@ -18,7 +18,7 @@ def make_ot_dataset(base_dataset, ot_fn, device="cpu", max_samples=None,
         imgs = imgs[:max_samples]
 
     N, C, H, W = imgs.shape
-    #imgs = imgs.to(device)
+    imgs = imgs.to(device)
 
     # Flatten to [N, d]
     Xdata_d = imgs.view(N, -1)
@@ -26,7 +26,7 @@ def make_ot_dataset(base_dataset, ot_fn, device="cpu", max_samples=None,
 
     # Apply OT across dataset
     Xdata_d, Yt_d, w2_hist = ot_fn(
-        Xdata_d, Yt_d, MinIter=1000, MaxIter=1000, tol=1e-9, avg_window=20
+        Xdata_d, Yt_d, MinIter=MinIter, MaxIter=MaxIter, tol=tol, avg_window=avg_window
     )
 
     # Reshape and concatenate as [N, 2, H, W]
@@ -36,7 +36,7 @@ def make_ot_dataset(base_dataset, ot_fn, device="cpu", max_samples=None,
 
     class OTTensorDataset(torch.utils.data.Dataset):
         def __init__(self, data_tensor):
-            self.data_tensor = data_tensor
+            self.data_tensor = data_tensor.to(device)
         def __len__(self):
             return len(self.data_tensor)
         def __getitem__(self, idx):
@@ -104,8 +104,8 @@ device = "cuda"
 #device = "cpu"
 reset = False
 lr = 8e-5
-n_epochs = 100
-train_batch_size = 100
+n_epochs = 10
+train_batch_size = 10
 num_workers = 0
 timesteps = 10
 max_samples = 10000
@@ -113,7 +113,7 @@ name_dataset = "CIFAR10"
 image_size = (32, 32)
 num_channel = 3 # Number of input channels (RGB)
 
-dim = 32
+dim = 64
 dim_mults=(1, 2, 4, 8)
 flash_attn = True
 learned_variance = False
@@ -150,7 +150,7 @@ ds_images_only = ImagesOnly(ds_limited)
 
 ot_dataset, w2_hist = make_ot_dataset(ds_images_only, OT_col, device=device, MinIter=MinIter, MaxIter=MaxIter)
 
-dl = DataLoader(ot_dataset, batch_size=train_batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
+dl = DataLoader(ot_dataset, batch_size=train_batch_size, shuffle=True, pin_memory=False, num_workers=num_workers)
 print("data loader is constructed")
 
 model = Unet(
