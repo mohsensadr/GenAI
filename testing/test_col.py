@@ -26,6 +26,10 @@ model = Unet(
     learned_variance=params["learned_variance"],
 )
 
+print("hist_loss:", checkpoint["hist_loss"])
+print("epoch:", checkpoint["epoch"])
+
+
 image_size = params["image_size"]
 num_channel = params["channels"]
 col = MyCOL(model, device=device, num_timesteps=params["timesteps"])
