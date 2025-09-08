@@ -94,17 +94,17 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device,
         torch.cuda.empty_cache()
 
 def main():
-    #device = "cuda" #
-    device = "cpu"
-    resume = True
+    device = "cuda"
+    #device = "cpu"
+    resume = False
     lr = 1e-4
     n_epochs = 10
     train_batch_size = 10
     num_workers = 2
     timesteps = 10
-    max_samples = 100
+    max_samples = 100000
     name_dataset = "Food101"
-    image_size = (32, 32)
+    image_size = (64, 64)
     num_channel = 3 # Number of input channels (RGB)
 
     dim = 64
@@ -121,7 +121,18 @@ def main():
     ds = datasets.Food101(root='./'+name_dataset, split="train", download=True, transform=transform)
     print("data read")
 
-    ds_limited = Subset(ds, range(max_samples))
+    max_size = len(ds)
+    print("Maximum dataset size:", max_size)
+
+    sample_image, _ = ds[0]  # for datasets with (image, label) tuples
+
+    print("Type:", type(sample_image))
+    print("Shape:", sample_image.shape)  # C x H x W for transformed images
+    print("Height:", sample_image.shape[1])
+    print("Width:", sample_image.shape[2])
+    print("Channels:", sample_image.shape[0])
+
+    ds_limited = Subset(ds, range(min(max_samples, max_size)))
     ds_images_only = ImagesOnly(ds_limited)
     dl = DataLoader(ds_images_only, batch_size=train_batch_size, shuffle=True, pin_memory=True, num_workers=num_workers)
     print("data loader is constructed")
