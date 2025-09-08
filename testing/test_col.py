@@ -8,14 +8,26 @@ sys.path.insert(0, root_dir)
 from src.colOT.col import *
 from src.prerpoc import *
 from matplotlib import pyplot as plt
+from huggingface_hub import hf_hub_download
+
+device = "cpu"
 
 #name_dataset = "mnist"
 #name_dataset = "CIFAR10"
 name_dataset = "Food101"
-store_path="../models/col_"+name_dataset+".pt"
-device = "cpu"
 
-checkpoint = torch.load(store_path, map_location=torch.device(device))
+repo_id = "mohsensadr91/"+name_dataset     # your repo name on Hugging Face
+filename = f"col_{name_dataset}.pt"  # must match the filename you uploaded
+
+# Download checkpoint file from Hub (caches locally after first time)
+checkpoint_path = hf_hub_download(
+    repo_id=repo_id,
+    filename=filename,
+    local_dir="../models",        # 👈 forces saving in your folder
+    local_dir_use_symlinks=False  # avoids symlinks to cache
+)
+
+checkpoint = torch.load(checkpoint_path, map_location=device)
 params = checkpoint["model_params"]
 
 model = Unet(
@@ -26,10 +38,6 @@ model = Unet(
     learned_variance=params["learned_variance"],
 )
 
-print("hist_loss:", checkpoint["hist_loss"])
-print("epoch:", checkpoint["epoch"])
-
-
 image_size = params["image_size"]
 num_channel = params["channels"]
 col = MyCOL(model, device=device, num_timesteps=params["timesteps"])
@@ -39,6 +47,13 @@ col.load_state_dict(checkpoint["model_state"])
 col.eval()
 
 #################
+fig, ax = plt.subplots(figsize=(5, 4))  # Adjust figsize as needed
+ax.plot(checkpoint["hist_loss"], marker='o', markersize=2)
+ax.set_xlabel("Iteration")
+ax.set_ylabel("Loss")
+ax.set_title(f"Training Loss for COL on {name_dataset}")
+plt.savefig("col_"+name_dataset+"_loss.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+
 nrows, ncols = 5, 5
 fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(5, 4))  # Adjust figsize as needed
 
