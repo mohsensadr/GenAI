@@ -119,15 +119,15 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path
 
 print("Start!", flush=True)
 
-device = "cuda"
-#device = "cpu"
-resume = False
+#device = "cuda"
+device = "cpu"
+resume = True
 lr = 1e-4
 n_epochs = 10
 train_batch_size = 10
 num_workers = 0
 timesteps = 10
-max_samples = 10000
+max_samples = 100
 name_dataset = "Food101"
 image_size = (32, 32)
 num_channel = 3 # Number of input channels (RGB)
