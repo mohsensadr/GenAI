@@ -2,7 +2,7 @@
 
 This repository demonstrates the application of the collisional optimal transport method published in
 
-- Sadr, Mohsen, and Hossein Gorji. "Collision-based Dynamics for Multi-Marginal Optimal Transport." arXiv preprint at [arXiv:2412.16385 (2024)](https://doi.org/10.48550/arXiv.2412.16385).
+- Sadr, Mohsen, and Hossein Gorji. "Collision-based Dynamics for Multi-Marginal Optimal Transport.", 2025, arXiv preprint at [arXiv:2412.16385](https://doi.org/10.48550/arXiv.2412.16385).
 
 for calibrating diffusion models used in Generative AI. 
 
