@@ -45,24 +45,36 @@ def make_ot_dataset(base_dataset, ot_fn, device="cpu", max_samples=None,
     dataset = OTTensorDataset(data_d)
     return dataset, w2_hist
 
-def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path="col_model.pt", sort_every=5, reset=False, name_dataset=""):
+def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path="col_model.pt", resume=False):
     mse = nn.MSELoss()
 
-    if reset is True:
-        state_dict = torch.load(store_path,map_location=torch.device(device))
-        model.load_state_dict(state_dict)
-        print("model loaded")
-        hist_loss = np.load("hist_loss_col_"+name_dataset+".npy").tolist()
-        best_loss = np.min(hist_loss)
-    else:
-        hist_loss = []
-        best_loss = float("inf")
+    # Load checkpoint if resuming
+    if resume and os.path.exists(store_path):
+        loaded_ckpt = torch.load(store_path, map_location=device)
+        model.load_state_dict(loaded_ckpt["model_state"])
 
-    for epoch in range(n_epochs):
+        # Only load optimizer if it's in checkpoint
+        if loaded_ckpt.get("optimizer_state") is not None:
+            optim.load_state_dict(loaded_ckpt["optimizer_state"])
+
+        checkpoint.update({
+            "epoch": loaded_ckpt.get("epoch", 0),
+            "hist_loss": loaded_ckpt.get("hist_loss", []),
+            "best_loss": loaded_ckpt.get("best_loss", float("inf")),
+            "model_state": loaded_ckpt["model_state"],
+            "optimizer_state": loaded_ckpt.get("optimizer_state", None)
+        })
+        print(f"Resumed training from epoch {checkpoint['epoch']}, best loss {checkpoint['best_loss']:.4f}")
+    
+    start_epoch = checkpoint["epoch"]
+    best_loss = checkpoint["best_loss"]
+    hist_loss = checkpoint["hist_loss"]
+
+    for epoch in range(start_epoch, start_epoch+n_epochs):
         epoch_loss = 0.0
+
         for _, batch in enumerate(loader):
             optim.zero_grad()
-
             temp = batch.to(device) #(item.to(device) for item in batch)
             nch = int(temp.shape[1]/2)
             b = temp.shape[0]
@@ -84,42 +96,49 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device, store_path
 
             epoch_loss += loss.item() * len(batch) / len(loader.dataset)
 
-        log_string = f"Loss at epoch {epoch + 1}: {epoch_loss:.4f}"
-
         hist_loss.append(epoch_loss)
-        np.save("hist_loss_col_"+name_dataset+".npy", hist_loss)
 
-        # Storing the model
-        if best_loss > epoch_loss:
+        # Update checkpoint runtime info
+        checkpoint.update({
+            "epoch": epoch + 1,
+            "model_state": model.state_dict(),
+            "optimizer_state": optim.state_dict(),
+            "hist_loss": hist_loss,
+        })
+
+        # Save best model
+        if epoch_loss < best_loss:
             best_loss = epoch_loss
+            checkpoint["best_loss"] = best_loss
             torch.save(checkpoint, store_path)
-            log_string += " --> Best model ever (stored)"
+            print(f"Epoch {epoch+1}: {epoch_loss:.4f} --> Best model stored!")
+        else:
+            print(f"Epoch {epoch+1}: {epoch_loss:.4f}")
 
-        print(log_string, flush=True)
         torch.cuda.empty_cache()
 
 print("Start!", flush=True)
 
-device = "cuda"
-#device = "cpu"
-reset = False
-lr = 8e-5
+#device = "cuda"
+device = "cpu"
+resume = True
+lr = 1e-4
 n_epochs = 10
 train_batch_size = 10
 num_workers = 0
 timesteps = 10
-max_samples = 10000
+max_samples = 1000
 name_dataset = "CIFAR10"
 image_size = (32, 32)
 num_channel = 3 # Number of input channels (RGB)
 
-dim = 64
-dim_mults=(1, 2, 4, 8)
+dim = 32
+dim_mults=(1, 2, 4)
 flash_attn = True
 learned_variance = False
 
-MinIter=2000
-MaxIter=2000
+MinIter=1000
+MaxIter=1000
 
 store_path="../models/col_"+name_dataset+".pt"
 
@@ -144,7 +163,18 @@ transform = transforms.Compose([
 ds = datasets.CIFAR10(root='./'+name_dataset, train=True, download=True, transform=transform)
 print("data read")
 
-ds_limited = Subset(ds, range(max_samples))
+max_size = len(ds)
+print("Maximum dataset size:", max_size)
+
+sample_image, _ = ds[0]  # for datasets with (image, label) tuples
+
+print("Type:", type(sample_image))
+print("Shape:", sample_image.shape)  # C x H x W for transformed images
+print("Height:", sample_image.shape[1])
+print("Width:", sample_image.shape[2])
+print("Channels:", sample_image.shape[0])
+
+ds_limited = Subset(ds, range(min(max_samples, max_size)))
 
 ds_images_only = ImagesOnly(ds_limited)
 
@@ -165,8 +195,15 @@ print("Unet instantiated", flush=True)
 col = MyCOL(model, device=device, num_timesteps=timesteps)
 print("col instantiated", flush=True)
 
+optimizer = optim.Adam(col.parameters(), lr=lr)
+print("optimizer set", flush=True)
+
 checkpoint = {
+    "epoch":0,
     "model_state": col.state_dict(),
+    "optimizer_state": optimizer.state_dict(),
+    "hist_loss": [],
+    "best_loss": float("inf"),
     "model_params": {
         "dim": dim,
         "channels": num_channel,
@@ -179,10 +216,7 @@ checkpoint = {
     }
 }
 
-optimizer = optim.Adam(col.parameters(), lr=lr)
-print("optimizer set", flush=True)
-
-training_loop(checkpoint, col, dl, n_epochs, optimizer, device=device, store_path=store_path, reset=reset, name_dataset=name_dataset)
+training_loop(checkpoint, col, dl, n_epochs, optimizer, device=device, store_path=store_path, resume=resume)
 
 del dl
 torch.cuda.empty_cache()
@@ -197,7 +231,7 @@ k=0
 for i in range(nrows):
     for j in range(ncols):
         x = torch.randn((1, num_channel, image_size[0], image_size[1])).to(device)
-        x = col.sample(x)
+        x = (col.sample(x) + 1 / 2 )
 
         x = x.detach().cpu().numpy()[0, ...].T
         x = np.swapaxes(x,0,1)
