@@ -18,5 +18,5 @@ For example, in the case of the Food101 dataset, after only 10 epochs, the Gener
 
 For training, please see examples in the `training/` directory.
 
-For testing the trained model, please see examples in `testing/` directory. Sources of Images: EUROfusion and SpaceX.
+For testing the trained model, please see examples in `testing/` directory.
 
