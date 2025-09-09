@@ -1,4 +1,4 @@
-# Generative Artificial Intelligence Powered by Optimal Transport
+# Generative AI Empowered by Optimal Transport
 
 This repository demonstrates the application of collisional optimal transport published in
 
