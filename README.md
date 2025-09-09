@@ -15,7 +15,7 @@ As an example, we compare our approach with the well-known Denoising Diffusion P
 
 in generating images of MNIST, CIFAR10, and Food101.
 
-For example, in the case of the Food101 dataset, after only 10 epochs, the Generative model trained on optimally paired samples of the normal distribution can generate more reasonable images compared to the DDPM counterpart.
+For example, in the case of the [Food101](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.Food101.html) dataset, after only 10 epochs, the Generative model trained on optimally paired samples of the normal distribution can generate more reasonable images compared to the DDPM counterpart.
 
 ![Demo](testing/combined_Food101.png)
 
