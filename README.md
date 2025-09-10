@@ -19,6 +19,10 @@ For example, in the case of the [Food101](https://docs.pytorch.org/vision/main/g
 
 ![Demo](testing/combined_Food101.png)
 
+Similarly, for [MNIST](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.MNIST.html)
+
+![Demo](testing/combined_MNIST.png)
+
 For training, please see examples in the `training/` directory.
 
 For testing the trained model, please see examples in `testing/` directory.
