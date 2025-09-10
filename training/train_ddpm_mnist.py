@@ -94,15 +94,15 @@ def training_loop(checkpoint, model, loader, n_epochs, optim, device,
         torch.cuda.empty_cache()
 
 def main():
-    #device = "cuda"
-    device = "cpu"
+    device = "cuda"
+    #device = "cpu"
     resume = False
     lr = 1e-4
     n_epochs = 10
     train_batch_size = 10
     num_workers = 2
     timesteps = 10
-    max_samples = 1000
+    max_samples = 10000
     name_dataset = "MNIST"
     image_size = (32, 32)
     num_channel = 1 # Number of input channels (grayscale)
