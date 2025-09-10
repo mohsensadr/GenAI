@@ -23,6 +23,10 @@ Similarly, for [MNIST](https://docs.pytorch.org/vision/main/generated/torchvisio
 
 ![Demo](testing/combined_mnist.png)
 
+and [CIFAR10](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html)
+
+![Demo](testing/combined_CIFAR10.png)
+
 For training, please see examples in the `training/` directory.
 
 For testing the trained model, please see examples in `testing/` directory.
