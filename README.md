@@ -21,7 +21,7 @@ For example, in the case of the [Food101](https://docs.pytorch.org/vision/main/g
 
 Similarly, for [MNIST](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.MNIST.html)
 
-![Demo](testing/combined_mnist.png)
+![Demo](testing/combined_mnist.gif)
 
 and [CIFAR10](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html)
 
