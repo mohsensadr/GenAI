@@ -25,7 +25,7 @@ Similarly, for [MNIST](https://docs.pytorch.org/vision/main/generated/torchvisio
 
 and [CIFAR10](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html)
 
-![Demo](testing/combined_CIFAR10.png)
+![Demo](testing/combined_CIFAR10.gif)
 
 For training, please see examples in the `training/` directory.
 
