@@ -15,15 +15,15 @@ Here, we compare our approach against the well-known Denoising Diffusion Probabi
 
 in generating images of commonly known datasets.
 
-As a shocase, let us consider both models only with 10 epochs over a subset of the datasets (10k data points). The trained model is then tested to generate new images post-training. In the case of the [Food101](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.Food101.html) we obtain 
+As a shocase, let us consider both models only with 10 epochs over a subset of the datasets (10k data points). The trained model is then tested to generate new images post-training. In the case of the [Food101](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.Food101.html):
 
 ![Demo](testing/combined_Food101.gif)
 
-[MNIST](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.MNIST.html)
+[MNIST](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.MNIST.html):
 
 ![Demo](testing/combined_mnist.gif)
 
-and [CIFAR10](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html)
+and [CIFAR10](https://docs.pytorch.org/vision/main/generated/torchvision.datasets.CIFAR10.html):
 
 ![Demo](testing/combined_CIFAR10.gif)
 
